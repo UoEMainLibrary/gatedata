@@ -9,44 +9,33 @@ include_once('PatronDataReader.php');
 //include_once('CoordinatesReader.php');
 
 class GateFileReader {
-    var $file;
-    var $delimiter;
+    var $file = "/Users/rtaylor3/gatedata/MainLibrary.csv";
+    var $delimiter = ",";
 
-    var $hours_all;
-    var $hours_main_gate;
-    var $hours_cafe_gate;
-    var $hours_hub_gate;
+    var $hours_all = array();
+    var $hours_main_gate = array();
+    var $hours_cafe_gate = array();
+    var $hours_hub_gate = array();
 
-    var $hours_all_sce;
-    var $hours_all_hss;
-    var $hours_all_mvm;
+    var $hours_all_sce = array();
+    var $hours_all_hss = array();
+    var $hours_all_mvm = array();
 
-    var $patronArray;
-    var $postcodeArray;
-    var $coordinatesArray;
-    var $collegeArray;
+    var $patronArray = array();
+    var $postcodeArray = array();
+    var $collegeArray = array();
 
     var $sce = 'College of Science and Engineering';
     var $hss = 'College of Humanities and Social Science';
     var $mvm = 'College of Medicine and Veterinary Medicine';
 
-    var $entrantCategory;
+    var $entrantCategory  = array();
 
+    var $coordinatesCounter = 0;
     var $coordinatesString = "";
 
-    function __construct($file, $delimiter) {
-        $this->file = $file;
-        $this->delimiter = $delimiter;
-
+    function __construct() {
         // Zero fill hours arrays
-        $this->hours_all = array();
-        $this->hours_main_gate = array();
-        $this->hours_cafe_gate = array();
-        $this->hours_hub_gate = array();
-        $this->hours_all_sce = array();
-        $this->hours_all_hss = array();
-        $this->hours_all_mvm = array();
-
         for ($i=0; $i < 24; $i++) {
             $this->hours_all[$i] = 0;
             $this->hours_main_gate[$i] = 0;
@@ -58,20 +47,13 @@ class GateFileReader {
         }
 
         // Load up the Patron data array
-        $patronReader = new PatronDataReader("/Users/rtaylor3/MainLibrary_TEST2_csv.csv",",");
+        $patronReader = new PatronDataReader("/Users/rtaylor3/gatedata/MainLibrary_TEST2_csv.csv",",");
         $this->patronArray = $patronReader->readFile();
 
-        // Load up the coordinates array
-        //$coordinatesReader = new CoordinatesReader();
-        //$this->coordinatesArray = $coordinatesReader->readFile();
-
-
-        $this->collegeArray = array();
         $this->collegeArray[$this->sce] = 0;
         $this->collegeArray[$this->hss] = 0;
         $this->collegeArray[$this->mvm] = 0;
 
-        $this->entrantCategory = array();
         $this->entrantCategory['VIS'] = 0;
         $this->entrantCategory['STF'] = 0;
         $this->entrantCategory['UGN'] = 0;
@@ -86,7 +68,7 @@ class GateFileReader {
     function readFile() {
         if (($handle = fopen($this->file, "r")) !== FALSE) {
 
-            $coordinatesCounter = 0;
+            //$coordinatesCounter = 0;
 
             while (($lineArray = fgetcsv($handle, 4000, $this->delimiter)) !== FALSE) {
 
@@ -133,59 +115,70 @@ class GateFileReader {
 
                     if (array_key_exists($lineArray[4], $this->entrantCategory)) {
                         $this->entrantCategory[$lineArray[4]]++;
-                    }
-                    else {
+                        //print_r($lineArray[3]);
+                    } else {
+                        //print_r($lineArray[3]);
                         $this->entrantCategory[$lineArray[4]] = 1;
                     }
 
                     // Group by postcode ***************
 
-                    if (($patron->addressDesc == 'Temporary') && (substr($patron->zipCode, 0, 2) == 'EH')) {
-                        //$postcodeFirstBit = $patron->zipCode;
-                        $postcodeFirstBit = explode(" ", $patron->zipCode)[0];
-                        if (array_key_exists($postcodeFirstBit, $this->postcodeArray)) {
-                            $this->postcodeArray[$postcodeFirstBit]++;
-                        } else {
-                            $this->postcodeArray[$postcodeFirstBit] = 1;
+                    //print_r($patron->tempAddress);
+                    //print_r($patron->permAddress);
+
+                    if ((isset($patron->tempAddress) && (!empty($patron->tempAddress)))) {
+
+                        //print_r("Using temp address \n");
+                        if (substr($patron->tempAddress->zipCode, 0, 2) == 'EH') {
+                            $postcodeFirstBit = explode(" ", $patron->tempAddress->zipCode)[0];
+                            if (array_key_exists($postcodeFirstBit, $this->postcodeArray)) {
+                                $this->postcodeArray[$postcodeFirstBit]++;
+                            } else {
+                                $this->postcodeArray[$postcodeFirstBit] = 1;
+                            }
+
+                            if (isset($patron->tempAddress->coordinate) && !empty($patron->tempAddress->coordinate)) {
+                                $this->makeCoordinateString($patron->tempAddress->coordinate);
+                            }
                         }
-                    }
+                    } elseif ((isset($patron->permAddress)) && (!empty($patron->permAddress))) {
 
-                    // Sort the array highest to lowest value.
-                    arsort($this->postcodeArray);
+                        //print_r("Using perm address \n");
+                        if (substr($patron->permAddress->zipCode, 0, 2) == 'EH') {
+                            $postcodeFirstBit = explode(" ", $patron->permAddress->zipCode)[0];
+                            if (array_key_exists($postcodeFirstBit, $this->postcodeArray)) {
+                                $this->postcodeArray[$postcodeFirstBit]++;
+                            } else {
+                                $this->postcodeArray[$postcodeFirstBit] = 1;
+                            }
 
-                    // Now get the matching coordinates
-
-                    if ($coordinatesCounter < 20000) {
-                        $coordinatesCounter++;
-
-                        if (isset($patron->coordinate) && !empty($patron->coordinate)) {
-                            $this->coordinatesString = $this->coordinatesString." new google.maps.LatLng(".$patron->coordinate->lat.", ".$patron->coordinate->lng."),";
+                            if (isset($patron->permAddress->coordinate) && !empty($patron->permAddress->coordinate)) {
+                                $this->makeCoordinateString($patron->permAddress->coordinate);
+                            }
                         }
+
+
                     }
-
-
                 }
             }
 
-            //print_r($this->coordinatesString);
-            //print_r("Removing the last comma");
-            // Remove the last comma
-            $tempString = $this->coordinatesString;
-            //rtrim($tempString,',');
-            $tempString = substr($tempString,0,strlen($tempString)-1);
+            // Sort the postcode array highest to lowest value.
+            arsort($this->postcodeArray);
 
-            $this->coordinatesString = substr($this->coordinatesString,0,strlen($this->coordinatesString)-1);
-
-
-            //print_r("\n");
-            //print_r("**********************************\n");
-
-            //print_r($tempString);
-
+            // Remove the last comma from the coordinates String.
+            $this->coordinatesString = substr($this->coordinatesString,0, strlen($this->coordinatesString) - 1);
 
             fclose($handle);
         } else {
             print_r("Error reading gate data file ".$this->file);
+        }
+    }
+
+    function makeCoordinateString($coordinate) {
+        if ($this->coordinatesCounter < 20000) {
+            $this->coordinatesCounter++;
+
+            $this->coordinatesString = $this->coordinatesString." new google.maps.LatLng(".$coordinate->lat.", ".$coordinate->lng."),";
         }
     }
 
@@ -194,10 +187,6 @@ class GateFileReader {
         foreach($array as $key => $value) {
             print_r("key is ".$key." ,value is ".$value."\n");
         }
-    }
-
-    function collegeEntrants() {
-
     }
 
 

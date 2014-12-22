@@ -16,15 +16,20 @@ $fileReader->readFile();
 //}
 
 
-print_r("Total hours is \n");
-printArray($fileReader->hours);
-print_r("Main gate hours is \n");
-printArray($fileReader->hours_main_gate);
-print_r("Cafe gate hours is \n");
-printArray($fileReader->hours_cafe_gate);
-print_r("Hub gate hours is \n");
-printArray($fileReader->hours_hub_gate);
+//print_r("Total hours is \n");
+//printArray($fileReader->hours);
+//print_r("Main gate hours is \n");
+//printArray($fileReader->hours_main_gate);
+//print_r("Cafe gate hours is \n");
+//printArray($fileReader->hours_cafe_gate);
+//print_r("Hub gate hours is \n");
+//printArray($fileReader->hours_hub_gate);
 
+print_r("Entrant Category \n");
+printArray($fileReader->entrantCategory);
+
+print_r("Postcode array is \n");
+printArray($fileReader->postcodeArray);
 
 
 function printArray($array) {

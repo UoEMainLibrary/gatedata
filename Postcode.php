@@ -31,9 +31,7 @@ function getCoordinates($postcode) {
     if ($obj->status == 'OK')
     {
         foreach ($obj->results as &$value) {
-
             print_r($postcode.", ".$value->geometry->location->lat.", ".$value->geometry->location->lng."\n");
-
         }
     //} else {
     //    print_r($postcode.", ".$obj->status.", ");

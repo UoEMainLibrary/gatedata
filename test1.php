@@ -7,14 +7,8 @@
 
 include_once('PatronDataReader.php');
 
-$fileReader = new PatronDataReader("/Users/rtaylor3/MainLibrary_TEST2_csv.csv",",");
-
-$fileReader->readFile();
-
-//foreach($fileReader->hours as $hour) {
-//    $jsonHours[] = array_values($hour);
-//}
-
+$patronReader = new PatronDataReader("/Users/rtaylor3/MainLibrary_TEST2_csv.csv",",");
+$patronReader->readFile();
 
 
 function printArray($array) {

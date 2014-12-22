@@ -6,26 +6,28 @@
  */
 
 class CoordinatesReader {
+    var $file = "/Users/rtaylor3/projectsPhp/gatedata/coordinates";
+    var $delimiter = ",";
+
+    var $coordinateArray;
+
+    function __construct() {
+        $this->coordinateArray = array();
+    }
 
     function readFile() {
-        if (($handle = fopen("/Users/rtaylor3/projectsPhp/gatedata/coordinates", "r")) !== FALSE) {
+        if (($handle = fopen($this->file, "r")) !== FALSE) {
 
-            while (($lineArray = fgetcsv($handle, 0, ",")) !== FALSE) {
+            while (($lineArray = fgetcsv($handle, 0, $this->delimiter)) !== FALSE) {
+
                 if (!empty($lineArray[1])) {
+                    $coordinate = new Coordinate;
 
+                    $coordinate->postCode = $lineArray[0];
+                    $coordinate->lat = $lineArray[1];
+                    $coordinate->lng = $lineArray[2];
 
-                        $coordinate = new Coordinate;
-
-                        //print_r(" "."\r\n");
-                        //print_r("New Rec "."\r\n");
-                        //print_r($lineArray[0]."\r\n");
-
-                        $coordinate->postCode = $lineArray[0];
-                        $coordinate->lat = $lineArray[1];
-                        $coordinate->lng = $lineArray[2];
-
-                        $this->coordinateArray[$lineArray[0]] = $coordinate;
-
+                    $this->coordinateArray[$lineArray[0]] = $coordinate;
                 }
             }
 
@@ -33,8 +35,6 @@ class CoordinatesReader {
         } else {
             print_r("Error reading coordinate data file ".$this->file);
         }
-
-        //print_r(count($this->coordinateArray));
 
         return $this->coordinateArray;
    }

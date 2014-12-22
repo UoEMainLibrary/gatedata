@@ -7,7 +7,7 @@
 
 include_once('GateFileReader.php');
 
-$fileReader = new GateFileReader("/Users/rtaylor3/MainLibrary.csv",",");
+$fileReader = new GateFileReader();
 $fileReader->readFile();
 
 $allGatesHours = makeDataTable($fileReader->hours_all);
@@ -17,7 +17,6 @@ $hubGateHours = makeDataTable($fileReader->hours_hub_gate);
 
 $stackedHours = stackCafeMainEntrants($fileReader->hours_main_gate, $fileReader->hours_cafe_gate);
 $stackedCollegeEntrants = stackCollegeEntrants($fileReader->hours_all_sce, $fileReader->hours_all_hss, $fileReader->hours_all_mvm);
-
 
 
 function makeDataTable($array) {
